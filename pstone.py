@@ -65,7 +65,9 @@ class IdToken(Token):
         return True
 
     def to_string(self):
-        return str(self.identify)
+        if self.identify == self.EOF:
+            return '\n'
+        return self.identify
 
 
 class StrToken(Token):
@@ -123,22 +125,22 @@ class Lexer(object):
             res = self.matcher.match(line, pos, end_pos)
             if res:
                 self.add_token(self.cur_line_no, res)
-                pos = res.endpos
+                pos = res.end()
             else:
                 raise ParseException
-        self.queue.append(IdToken(self.cur_line_no, Token.EOF))
+        # self.queue.append(IdToken(self.cur_line_no, Token.EOF))
 
     def add_token(self, lineno, matcher):
         """
         group 的排列顺序
-        匹配到得字符串  空字符 数字 匹配到的字符串 字符串 操作符
+        匹配到得字符串  注释 数字 匹配到的字符串 字符串 操作符
         """
-        matched = matcher.group(0)
+        matched = matcher.group(1)
         if matched is not None:
-            if matcher.group(1) is None:
-                if matcher.group(2) is not None:
+            if matcher.group(2) is None:
+                if matcher.group(3) is not None:
                     token = NumToken(lineno, int(matched))
-                elif matcher.group(3) is not None:
+                elif matcher.group(4) is not None:
                     token = StrToken(lineno, self.to_string_literal(matched))
                 else:
                     token = IdToken(lineno, matched)

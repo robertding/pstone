@@ -17,7 +17,7 @@ def main():
     parse_file = open(sys.argv[1], 'r')
     parse = pstone.Lexer(parse_file)
     res = parse.read()
-    while res != pstone.Token.EOF:
+    while res is not pstone.Token.EOF:
         print("==> " + res.to_string())
         res = parse.read()
 
