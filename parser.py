@@ -8,7 +8,6 @@
 #
 from __future__ import absolute_import, division, with_statement
 
-# from ast import ASTree
 from ast import ASTLeaf
 from ast import ASTList
 
@@ -17,8 +16,12 @@ class Parser(object):
     operators = dict()
     elements = []
 
-    def __init__(self, parser=None):
-        pass
+    def __init__(self, parser, ast_class=None):
+        if parser:
+            self.elements = parser.elements
+            self.ast_class = parser.ast_class
+        elif ast_class:
+            self.reset(ast_class)
 
     def parse(self, lexer):
         res = []
@@ -32,11 +35,14 @@ class Parser(object):
         else:
             return self.elements[0].match(lexer)
 
-    def rule(self, ast_class=None):
-        return self.__class__(ast_class)
+    @staticmethod
+    def rule(ast_class=None):
+        return Parser(None, ast_class)
 
     def reset(self, ast_class=None):
-        return self.rule()
+        self.elements = []
+        self.ast_class = ast_class
+        return self
 
     def number(self, ast_class=None):
         self.elements.append(NumToken(ast_class))
@@ -46,8 +52,8 @@ class Parser(object):
         self.elements.append(StrToken(ast_class))
         return self
 
-    def identify(self, ast_class=None):
-        self.elements.append(IdToken(ast_class))
+    def identify(self, ast_class=None, reserved=None):
+        self.elements.append(IdToken(ast_class, reserved))
         return self
 
     def token(self, pat):
@@ -161,7 +167,7 @@ class AToken(Element):
     def parse(self, lexer, res):
         token = lexer.read()
         if self.test(token):
-            res.append(token)
+            res.append(self.ast_class(token))
 
     def match(self, lexer):
         return self.test(lexer.peek(0))
@@ -173,7 +179,7 @@ class AToken(Element):
 class IdToken(AToken):
     def __init__(self, atype, rdict):
         super(AToken, self).__init__(atype)
-        self.reserved = False if rdict is None else dict()
+        self.reserved = rdict or dict()
 
     def test(self, token):
         if token.is_identifier():
@@ -183,7 +189,7 @@ class IdToken(AToken):
 
 
 class StrToken(AToken):
-    def __init__(self, atype, rdict):
+    def __init__(self, atype):
         super(AToken, self).__init__(atype)
 
     def test(self, token):
@@ -191,7 +197,7 @@ class StrToken(AToken):
 
 
 class NumToken(AToken):
-    def __init__(self, atype, rdict):
+    def __init__(self, atype):
         super(AToken, self).__init__(atype)
 
     def test(self, token):
@@ -213,7 +219,7 @@ class Leaf(Element):
             raise BaseException
 
     def find(self, res, token):
-        res.append(self.__class__(token))
+        res.append(Parser(token))
 
     def match(self, lexer):
         t = lexer.peak(0)
