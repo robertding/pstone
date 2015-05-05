@@ -91,3 +91,72 @@ class BinaryExpr(ASTList):
 
     def operator(self):
         return self.child(1).token.to_string()
+
+
+class PrimaryExpr(ASTList):
+    def __init__(self, astlist):
+        super(ASTList, self).__init__(astlist)
+
+    def creat(self, astlist):
+        return astlist[0] if len(astlist) == 1 else PrimaryExpr(astlist)
+
+
+class NegtiveExpr(ASTList):
+    def __init__(self, astlist):
+        super(ASTList, self).__init__(astlist)
+
+    def operand(self):
+        return self.child(0)
+
+    def to_string(self):
+        return "-" + self.operand()
+
+
+class BlockStmnt(ASTList):
+    def __init__(self, astlist):
+        super(ASTList, self).__init__(astlist)
+
+
+class IfStmnt(ASTList):
+    def __init__(self, astlist):
+        super(ASTList, self).__init__(astlist)
+
+    def condition(self):
+        return self.child(0)
+
+    def then_block(self):
+        return self.child(1)
+
+    def else_block(self):
+        return self.child(2) if self.num_child() > 2 else None
+
+    def to_string(self):
+        return '(if ' + self.condition + ' ' + self.then_block() + ' '\
+            + ' else ' + self.else_block() + ' )'
+
+
+class WhileStmnt(ASTList):
+    def __init__(self, astlist):
+        super(ASTList, self).__init__(astlist)
+
+    def condition(self):
+        return self.child(0)
+
+    def body(self):
+        return self.child(1)
+
+    def to_string(self):
+        return '(while ' + self.condition() + ' ' + self.body() + ')'
+
+
+class NoneStmnt(ASTList):
+    def __init__(self, astlist):
+        super(ASTList, self).__init__(astlist)
+
+
+class StringLiteral(ASTLeaf):
+    def __init__(self, token):
+        super(ASTLeaf, self).__init__(token)
+
+    def value(self):
+        return self.token.to_string()
