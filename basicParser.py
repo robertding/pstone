@@ -8,6 +8,8 @@
 #
 from __future__ import absolute_import, division, with_statement
 
+import logging
+
 import ast
 import parser
 
@@ -20,7 +22,7 @@ rule = parser.Parser.rule
 class BasicParser(object):
     reserved = []
     operators = dict()
-    expr0 = parser.Parser.rule()
+    expr0 = rule()
     primary = rule(ast.PrimaryExpr)\
         .or_(rule().sep('(').ast(expr0).sep(')'),
              rule().number(ast.NumLiteral),
@@ -61,4 +63,5 @@ class BasicParser(object):
             ('%', parser.Precedence(4, self.op_LEFT))])
 
     def parse(self, lexer):
+        logging.debug("basic Parser begin")
         return self.program.parse(lexer)

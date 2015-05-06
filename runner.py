@@ -9,11 +9,12 @@
 from __future__ import absolute_import, division, with_statement
 
 import sys
+import logging
 
 import token
 import basicParser
 
-
+logging.basicConfig(level=logging.DEBUG)
 parse_file = open('grammarfile.ps', 'r')
 lexer = token.Lexer(parse_file)
 
@@ -33,9 +34,10 @@ def parser_runner():
 
 
 def main():
+    logging.debug("start")
     run = dict(lexer=lexer_runner,
                parser=parser_runner)
-    run.get(sys.argv[1], lambda x: x)()
+    run.get(sys.argv[1], sum)()
 
 if __name__ == '__main__':
     main()

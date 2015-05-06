@@ -8,6 +8,9 @@
 #
 from __future__ import absolute_import, division, with_statement
 
+import logging
+
+
 from ast import ASTLeaf
 from ast import ASTList
 
@@ -20,12 +23,14 @@ class Parser(object):
         if parser:
             self.elements = parser.elements
             self.ast_class = parser.ast_class
-        elif ast_class:
+        else:
             self.reset(ast_class)
 
     def parse(self, lexer):
+        logging.debug("Parser parse")
         res = []
         for e in self.elements:
+            logging.debug("Parse elements e: {}".format(e))
             e.parse(lexer, res)
         return res
 
@@ -73,7 +78,7 @@ class Parser(object):
         return self
 
     def maybe(self, parser):
-        p2 = Parser()
+        p2 = Parser(parser)
         p2.reset()
         self.elements.append(OrTree([parser, p2]))
         return self
@@ -115,7 +120,7 @@ class Tree(Element):
         self.parser = parser
 
     def parse(self, lexer, res):
-        res.append(self.parser(lexer))
+        res.append(self.parser.parse(lexer))
 
     def match(self, lexer):
         return self.parser.match(lexer)
@@ -139,7 +144,7 @@ class OrTree(Element):
         return None
 
     def match(self, lexer):
-        return self.choose(lexer) is None
+        return self.choose(lexer) is not None
 
     def insert(self, parser):
         self.plist.insert(0, parser)
@@ -213,20 +218,21 @@ class Leaf(Element):
         self.strtokens = pats
 
     def parse(self, lexer, res):
+        logging.debug('Leaf parser: patterns {}'.format(self.strtokens))
         t = lexer.read()
         if t.is_identifier():
             for token in self.strtokens:
-                if t == token:
+                if t.to_string() == token:
                     self.find(res, t)
                     return None
         if len(self.strtokens) > 0:
             raise BaseException
 
     def find(self, res, token):
-        res.append(Parser(token))
+        res.append(ASTLeaf(token))
 
     def match(self, lexer):
-        t = lexer.peak(0)
+        t = lexer.peek(0)
         if t.is_identifier():
             for token in self.strtokens:
                 if t == token:
@@ -273,7 +279,7 @@ class Expr(Element):
         return astlist
 
     def next_operator(self, lexer):
-        token = lexer.peak(0)
+        token = lexer.peek(0)
         if token.is_identifier():
             return self.ops.get(token.to_string())
         else:
@@ -284,3 +290,6 @@ class Expr(Element):
             return prec < pnext.value
         else:
             return prec <= pnext.value
+
+    def match(self, lexer):
+        return self.factor.match(lexer)

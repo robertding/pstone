@@ -30,13 +30,13 @@ class Token(object):
         self.line_number = lineno
 
     def is_identifier(self):
-        raise NotImplementedError()
+        return False
 
     def is_number(self):
-        raise NotImplementedError()
+        return False
 
     def is_string(self):
-        raise NotImplementedError()
+        return False
 
     def to_string(self):
         raise NotImplementedError()
