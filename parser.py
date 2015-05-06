@@ -52,7 +52,7 @@ class Parser(object):
         self.elements.append(StrToken(ast_class))
         return self
 
-    def identify(self, ast_class=None, reserved=None):
+    def identifier(self, ast_class=None, reserved=None):
         self.elements.append(IdToken(ast_class, reserved))
         return self
 
@@ -60,15 +60,15 @@ class Parser(object):
         self.elements.append(Leaf(pat))
         return self
 
-    def sep(self, pat):
-        self.elements.append(Skip(pat))
+    def sep(self, *pats):
+        self.elements.append(Skip(pats))
         return self
 
     def ast(self, pat):
         self.elements.append(Tree(pat))
         return self
 
-    def or_(self, parsers):
+    def or_(self, *parsers):
         self.elements.append(OrTree(parsers))
         return self
 
@@ -80,6 +80,10 @@ class Parser(object):
 
     def option(self, parser):
         self.elements.append(Repeat(parser, True))
+        return self
+
+    def repeat(self, parser):
+        self.elements.append(Repeat(parser, False))
         return self
 
     def expression(self, ast_class, subexp, operators):
@@ -178,7 +182,7 @@ class AToken(Element):
 
 class IdToken(AToken):
     def __init__(self, atype, rdict):
-        super(AToken, self).__init__(atype)
+        super(IdToken, self).__init__(atype)
         self.reserved = rdict or dict()
 
     def test(self, token):
@@ -190,7 +194,7 @@ class IdToken(AToken):
 
 class StrToken(AToken):
     def __init__(self, atype):
-        super(AToken, self).__init__(atype)
+        super(StrToken, self).__init__(atype)
 
     def test(self, token):
         return token.is_string()
@@ -198,7 +202,7 @@ class StrToken(AToken):
 
 class NumToken(AToken):
     def __init__(self, atype):
-        super(AToken, self).__init__(atype)
+        super(NumToken, self).__init__(atype)
 
     def test(self, token):
         return token.is_number()
@@ -232,7 +236,7 @@ class Leaf(Element):
 
 class Skip(Leaf):
     def __init__(self, pats):
-        super(Leaf, self).__init__(pats)
+        super(Skip, self).__init__(pats)
 
     def find(self, res, token):
         return None

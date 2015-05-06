@@ -14,7 +14,7 @@ import token
 import basicParser
 
 
-parse_file = open(sys.argv[1], 'r')
+parse_file = open('grammarfile.ps', 'r')
 lexer = token.Lexer(parse_file)
 
 
@@ -35,7 +35,7 @@ def parser_runner():
 def main():
     run = dict(lexer=lexer_runner,
                parser=parser_runner)
-    run.get(sys.argv.get(1), lambda x: x)()
+    run.get(sys.argv[1], lambda x: x)()
 
 if __name__ == '__main__':
     main()

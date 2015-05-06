@@ -23,7 +23,7 @@ class ASTree(object):
         raise NotImplementedError
 
 
-def ASTLeaf(ASTree):
+class ASTLeaf(ASTree):
     def __init__(self, token):
         self.token = token
 
@@ -40,7 +40,7 @@ def ASTLeaf(ASTree):
         return None
 
 
-def ASTList(ASTree):
+class ASTList(ASTree):
     def __init__(self, astlist):
         self.astlist = astlist or []
 
@@ -63,7 +63,7 @@ def ASTList(ASTree):
         return None
 
 
-def NumLiteral(ASTLeaf):
+class NumLiteral(ASTLeaf):
     def __init__(self, token):
         super(ASTLeaf, self).__init__(token)
 
@@ -71,7 +71,7 @@ def NumLiteral(ASTLeaf):
         return self.token.num
 
 
-def Name(ASTLeaf):
+class Name(ASTLeaf):
     def __init__(self, token):
         super(ASTLeaf, self).__init__(token)
 

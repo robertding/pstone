@@ -101,7 +101,7 @@ class Lexer(object):
 
     def peek(self, i):
         if self.fill_queue(i):
-            return self.pop(i)
+            return self.queue.pop(i)
         else:
             return False
 
