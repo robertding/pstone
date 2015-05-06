@@ -31,6 +31,7 @@ class Parser(object):
         res = []
         for e in self.elements:
             logging.debug("Parse elements e: {}".format(e))
+            logging.debug("lexer left {}".format(lexer.queue))
             e.parse(lexer, res)
         return res
 
@@ -191,7 +192,7 @@ class IdToken(AToken):
         self.reserved = rdict or dict()
 
     def test(self, token):
-        if token.is_identifier():
+        if token and token.is_identifier():
             if not self.reserved.get(token.to_string()):
                 return True
         return False
@@ -202,7 +203,7 @@ class StrToken(AToken):
         super(StrToken, self).__init__(atype)
 
     def test(self, token):
-        return token.is_string()
+        return token and token.is_string()
 
 
 class NumToken(AToken):
@@ -210,17 +211,23 @@ class NumToken(AToken):
         super(NumToken, self).__init__(atype)
 
     def test(self, token):
-        return token.is_number()
+        return token and token.is_number()
 
 
 class Leaf(Element):
+    strtokens = []
+
     def __init__(self, pats):
-        self.strtokens = pats
+        for pat in pats:
+            if type(pat) is str:
+                self.strtokens.append(pat)
+            else:
+                self.strtokens.append('\n')
 
     def parse(self, lexer, res):
         logging.debug('Leaf parser: patterns {}'.format(self.strtokens))
         t = lexer.read()
-        if t.is_identifier():
+        if t and t.is_identifier():
             for token in self.strtokens:
                 if t.to_string() == token:
                     self.find(res, t)
@@ -233,7 +240,7 @@ class Leaf(Element):
 
     def match(self, lexer):
         t = lexer.peek(0)
-        if t.is_identifier():
+        if t and t.is_identifier():
             for token in self.strtokens:
                 if t == token:
                     return True

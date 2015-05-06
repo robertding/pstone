@@ -25,6 +25,7 @@ class ParseException(BaseException):
 
 class Token(object):
     EOF = object()
+    EOL = '\n'
 
     def __init__(self, lineno):
         self.line_number = lineno
@@ -65,7 +66,7 @@ class IdToken(Token):
         return True
 
     def to_string(self):
-        if self.identify == self.EOF:
+        if self.identify == self.EOL:
             return '\n'
         return self.identify
 
@@ -103,7 +104,7 @@ class Lexer(object):
         if self.fill_queue(i):
             return self.queue.pop(i)
         else:
-            return False
+            return Token.EOF
 
     def fill_queue(self, i):
         while i >= len(self.queue):
@@ -128,7 +129,7 @@ class Lexer(object):
                 pos = res.end()
             else:
                 raise ParseException
-        # self.queue.append(IdToken(self.cur_line_no, Token.EOF))
+        self.queue.append(IdToken(self.cur_line_no, Token.EOL))
 
     def add_token(self, lineno, matcher):
         """

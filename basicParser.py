@@ -34,7 +34,7 @@ class BasicParser(object):
     statement0 = rule()
     block = rule(ast.BlockStmnt)\
         .sep('{').option(statement0)\
-        .repeat(rule().sep(';', Token.EOF).option(statement0))\
+        .repeat(rule().sep(';', Token.EOL).option(statement0))\
         .sep('}')
 
     simple = rule(ast.PrimaryExpr).ast(expr)
@@ -43,13 +43,13 @@ class BasicParser(object):
         .option(rule().sep('else').ast(block)),
         rule(ast.WhileStmnt).sep('while').ast(expr).ast(block),
         simple)
-    program = rule().or_(statement, rule(ast.NoneStmnt)).sep(";", Token.EOF)
+    program = rule().or_(statement, rule(ast.NoneStmnt)).sep(";", Token.EOL)
 
     op_LEFT = True
     op_RIGTH = False
 
     def __init__(self):
-        self.reserved.extend([';', '}', Token.EOF])
+        self.reserved.extend([';', '}', Token.EOL])
 
         self.operators.update([
             ('=', parser.Precedence(1, self.op_RIGTH)),
