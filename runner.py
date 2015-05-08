@@ -30,7 +30,7 @@ def parser_runner():
     parser = basicParser.BasicParser()
     while not lexer.peek(0).is_EOF():
         ast = parser.parse(lexer)
-        print("==>  " + str(ast))
+        print("==>  {}".format(map(lambda s: s, ast)))
 
 
 def main():

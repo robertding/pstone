@@ -35,6 +35,8 @@ class Parser(object):
                           .format(map(lambda x: x.to_string(), lexer.queue)))
             e.parse(lexer, res)
         logging.debug("Parser parse finish")
+        if len(res) == 1:
+            return res[0]
         return res
 
     def match(self, lexer):
