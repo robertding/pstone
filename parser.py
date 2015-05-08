@@ -31,15 +31,22 @@ class Parser(object):
         res = []
         for e in self.elements:
             logging.debug("Parse elements e: {}".format(e))
-            logging.debug("lexer left {}".format(lexer.queue))
+            logging.debug("lexer left {}"
+                          .format(map(lambda x: x.to_string(), lexer.queue)))
             e.parse(lexer, res)
+        logging.debug("Parser parse finish")
         return res
 
     def match(self, lexer):
         if self.elements == []:
             return True
         else:
-            return self.elements[0].match(lexer)
+            ifmatch = self.elements[0].match(lexer)
+            logging.debug("to match {}"
+                          .format(map(lambda x: x.to_string(), lexer.queue)))
+            logging.debug("parser {} match {}".
+                          format(self.ast_class or self.elements[0], ifmatch))
+            return ifmatch
 
     @staticmethod
     def rule(ast_class=None):
@@ -133,6 +140,7 @@ class OrTree(Element):
 
     def parse(self, lexer, res):
         parser = self.choose(lexer)
+        logging.debug("OrTree choose parser: {}".format(parser))
         if parser is None:
             raise BaseException
         else:
@@ -156,12 +164,14 @@ class Repeat(Element):
         self.parser = parser
         self.only_once = only_once
 
-    def parser(self, lexer, res):
+    def parse(self, lexer, res):
         while self.parser.match(lexer):
             astree = self.parser.parse(lexer)
+            logging.debug("repeat match astree: {}".format(astree))
             if astree.__class__ != ASTList or astree.num_children() > 0:
                 res.append(astree)
             if self.only_once:
+                logging.debug("break")
                 break
 
     def match(self, lexer):
@@ -176,6 +186,7 @@ class AToken(Element):
 
     def parse(self, lexer, res):
         token = lexer.read()
+        logging.debug("atoken read {}".format(token.to_string()))
         if self.test(token):
             res.append(self.ast_class(token))
 
@@ -193,7 +204,7 @@ class IdToken(AToken):
 
     def test(self, token):
         if token and token.is_identifier():
-            if not self.reserved.get(token.to_string()):
+            if token.to_string() not in self.reserved:
                 return True
         return False
 
@@ -215,18 +226,13 @@ class NumToken(AToken):
 
 
 class Leaf(Element):
-    strtokens = []
-
     def __init__(self, pats):
-        for pat in pats:
-            if type(pat) is str:
-                self.strtokens.append(pat)
-            else:
-                self.strtokens.append('\n')
+        self.strtokens = pats
 
     def parse(self, lexer, res):
         logging.debug('Leaf parser: patterns {}'.format(self.strtokens))
         t = lexer.read()
+        logging.debug("Leaf parser t: {}".format(t.to_string()))
         if t and t.is_identifier():
             for token in self.strtokens:
                 if t.to_string() == token:
@@ -242,7 +248,7 @@ class Leaf(Element):
         t = lexer.peek(0)
         if t and t.is_identifier():
             for token in self.strtokens:
-                if t == token:
+                if t.to_string() == token:
                     return True
         return False
 
@@ -273,6 +279,7 @@ class Expr(Element):
         while prec is not None:
             right = self.do_shift(lexer, right, prec.value)
             prec = self.next_operator(lexer)
+        res.append(right)
 
     def do_shift(self, lexer, left, prec):
         astlist = [left]
@@ -281,14 +288,14 @@ class Expr(Element):
         pnext = self.next_operator(lexer)
         while pnext is not None and self.right_is_expr(prec, pnext):
             right = self.do_shift(lexer, right, pnext.value)
+            pnext = self.next_operator(lexer)
         astlist.append(right)
-        # TODO Factory
         return astlist
 
     def next_operator(self, lexer):
         token = lexer.peek(0)
         if token.is_identifier():
-            return self.ops.get(token.to_string())
+            return self.ops.get(token.to_string(), None)
         else:
             return None
 

@@ -9,6 +9,7 @@
 from __future__ import absolute_import, division, with_statement
 
 import re
+import logging
 
 
 class StoneException(BaseException):
@@ -24,7 +25,7 @@ class ParseException(BaseException):
 
 
 class Token(object):
-    EOF = object()
+    EOF = -1
     EOL = '\n'
 
     def __init__(self, lineno):
@@ -40,7 +41,10 @@ class Token(object):
         return False
 
     def to_string(self):
-        raise NotImplementedError()
+        return '-1'
+
+    def is_EOF(self):
+        return True if self.line_number == -1 else False
 
 
 class NumToken(Token):
@@ -96,15 +100,16 @@ class Lexer(object):
 
     def read(self):
         if self.fill_queue(0):
+            logging.debug("read lexer {}".format(self.queue[0].to_string()))
             return self.queue.pop(0)
         else:
-            return Token.EOF
+            return Token(Token.EOF)
 
     def peek(self, i):
         if self.fill_queue(i):
-            return self.queue.pop(i)
+            return self.queue[i]
         else:
-            return Token.EOF
+            return Token(Token.EOF)
 
     def fill_queue(self, i):
         while i >= len(self.queue):
@@ -122,7 +127,7 @@ class Lexer(object):
         self.cur_line_no += 1
         pos = 0
         end_pos = len(line)
-        while pos < end_pos:
+        while pos < end_pos - 1:
             res = self.matcher.match(line, pos, end_pos)
             if res:
                 self.add_token(self.cur_line_no, res)

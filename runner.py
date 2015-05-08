@@ -15,20 +15,20 @@ import token
 import basicParser
 
 logging.basicConfig(level=logging.DEBUG)
-parse_file = open('grammarfile.ps', 'r')
+parse_file = open('simple.ps', 'r')
 lexer = token.Lexer(parse_file)
 
 
 def lexer_runner():
     res = lexer.read()
-    while res is not token.Token.EOF:
+    while not res.is_EOF():
         print("==> " + res.to_string())
         res = lexer.read()
 
 
 def parser_runner():
     parser = basicParser.BasicParser()
-    while lexer.peek(0) != token.Token.EOF:
+    while not lexer.peek(0).is_EOF():
         ast = parser.parse(lexer)
         print("==>  " + str(ast))
 

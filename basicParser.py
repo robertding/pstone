@@ -20,8 +20,22 @@ rule = parser.Parser.rule
 
 
 class BasicParser(object):
-    reserved = []
+    op_LEFT = True
+    op_RIGTH = False
+
+    reserved = [Token.EOL, '}', ';']
     operators = dict()
+    operators.update([
+        ('=', parser.Precedence(1, op_RIGTH)),
+        ('==', parser.Precedence(2, op_LEFT)),
+        ('>', parser.Precedence(2, op_LEFT)),
+        ('<', parser.Precedence(2, op_LEFT)),
+        ('+', parser.Precedence(3, op_LEFT)),
+        ('-', parser.Precedence(3, op_LEFT)),
+        ('*', parser.Precedence(4, op_LEFT)),
+        ('/', parser.Precedence(4, op_LEFT)),
+        ('%', parser.Precedence(4, op_LEFT))])
+
     expr0 = rule()
     primary = rule(ast.PrimaryExpr)\
         .or_(rule().sep('(').ast(expr0).sep(')'),
@@ -45,22 +59,9 @@ class BasicParser(object):
         simple)
     program = rule().or_(statement, rule(ast.NoneStmnt)).sep(";", Token.EOL)
 
-    op_LEFT = True
-    op_RIGTH = False
-
     def __init__(self):
-        self.reserved.extend([';', '}', Token.EOL])
-
-        self.operators.update([
-            ('=', parser.Precedence(1, self.op_RIGTH)),
-            ('==', parser.Precedence(2, self.op_LEFT)),
-            ('>', parser.Precedence(2, self.op_LEFT)),
-            ('<', parser.Precedence(2, self.op_LEFT)),
-            ('+', parser.Precedence(3, self.op_LEFT)),
-            ('-', parser.Precedence(3, self.op_LEFT)),
-            ('*', parser.Precedence(4, self.op_LEFT)),
-            ('/', parser.Precedence(4, self.op_LEFT)),
-            ('%', parser.Precedence(4, self.op_LEFT))])
+        # self.reserved.extend([';', '}', Token.EOL])
+        pass
 
     def parse(self, lexer):
         logging.debug("basic Parser begin")
